@@ -2,6 +2,7 @@
 #include <Wire.h>
 
 #define ACCELADDR 0x53
+#define GYROADDR 0x68
 
 union XYZBuffer{
   struct{
@@ -36,31 +37,47 @@ void init_accel(int device_id) {
 void setup() {
   Serial.begin(9600); // set the baud rate
   Serial.println("Ready!"); // print "Ready" once
-  Serial.print("Ready"); // print "Ready" once
-  Serial.println("Ready"); // print "Ready" once
-  Serial.print("Ready"); // print "Ready" once
+  Serial.print(sizeof(char)); // print "Ready" once
   init_accel(ACCELADDR);
 }
 
 void loop() {
   while (true) {
-    XYZBuffer temp;
     Wire.beginTransmission(ACCELADDR);
     Wire.write(0x32);
     Wire.endTransmission();
     Wire.requestFrom(ACCELADDR, 6);
-    long start = millis();
+    XYZBuffer buffer;
+    int x = 0;
     while(Wire.available()) {
-      for (int i=1; i< 6; i++) {
-        temp.buff[i] = Wire.read();
-      }
+        buffer.buff[x] = Wire.read();
+        x++;
     }
-    Serial.print(temp.value.x);
-    Serial.print(':');
-    Serial.print(temp.value.y);
-    Serial.print(':');
-    Serial.print(temp.value.z);
+    Serial.print("ACCEL : ");
+    Serial.print(buffer.value.x / 3.9);
+    Serial.print(":");
+    Serial.print(buffer.value.y / 3.9);
+    Serial.print(":");
+    Serial.print(buffer.value.z / 3.9);
     Serial.print('\n');
+    
+    Wire.beginTransmission(GYROADDR);
+    Wire.write(0x1D);
+    Wire.endTransmission();
+    Wire.requestFrom(GYROADDR, 6);
+    x = 0;
+    while(Wire.available()) {
+        buffer.buff[x] = Wire.read();
+        x++;
+    }
+    Serial.print("GYRO : ");
+    Serial.print(buffer.value.x / 14.375);
+    Serial.print(":");
+    Serial.print(buffer.value.y / 14.375);
+    Serial.print(":");
+    Serial.print(buffer.value.z / 14.375);
+    Serial.print('\n');
+    
     delay(100); // delay for 1/10 of a second
   }
 }

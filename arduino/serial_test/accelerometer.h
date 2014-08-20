@@ -15,9 +15,11 @@ class Accelerometer
 public:
     Accelerometer(int addr);
     void update();
-    short getX();
-    short getY();
-    short getZ();
+    short getRawX();
+    short getRawY();
+    short getRawZ();
+    float getRoll();
+    float getPitch();
     byte* getBuffer();
     void print();
     
@@ -27,10 +29,17 @@ private:
             short x,y,z;
         } value;
         byte buff[6];
-    } buffer;
+    };
     
+    XYZBuffer buffer;
+
+    float roll;
+    float pitch;
     int i2c_addr;
-    static const int scale;
+    static const int scale2;
+    static const int scale4;
+    static const int scale8;
+    static const int scale16;
 };
 
 #endif

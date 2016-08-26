@@ -1,6 +1,7 @@
 
 #include <Wire.h>
 #include "accelerometer.h"
+#include "packet.h"
 
 #define ACCELADDR 0x53
 #define GYROADDR 0x68
@@ -16,7 +17,9 @@ union XYZBuffer{
 
 void setup() {
   Serial.begin(9600); // set the baud rate
-  Serial.println("Ready!"); // print "Ready" once
+  
+  Packet *to_send = new Packet(Packet::TYPE_MSG, "BOOTED");
+  Serial.write(to_send->getBytes(), to_send->getLen());
 
   Accel = new Accelerometer(ACCELADDR);
 }
@@ -25,8 +28,14 @@ void loop() {
   while (true) {
     
     Accel->update();
-    Accel->print();
     
+    //Accel->print();
+    
+
+    Packet *to_send = new Packet(Packet::TYPE_POS, Accel->getRoll(), Accel->getPitch());
+    Serial.write(to_send->getBytes(), to_send->getLen());
+
+    /*
     Wire.beginTransmission(GYROADDR);
     Wire.write(0x1D);
     Wire.endTransmission();
@@ -45,7 +54,7 @@ void loop() {
     Serial.print(":");
     Serial.print(buffer.value.z / 14.375);
     Serial.print('\n');
-    */
-    delay(100); // delay for 1/10 of a second
+    */    
+    delay(125); // delay for 1/8 of a second
   }
 }

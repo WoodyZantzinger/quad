@@ -20,6 +20,7 @@ Leon is right - 9.8m/s/s - in terms of the accelerometers measurements however t
 #include "accelerometer.h"
 #include <Wire.h>
 #include <math.h>
+#include "packet.h"
 
 const int Accelerometer::scale2 = 3.74;
 const int Accelerometer::scale4 = 7.8;
@@ -60,11 +61,14 @@ Accelerometer::Accelerometer(int addr) {
 
 void Accelerometer::update() {
     Wire.beginTransmission(this->i2c_addr);
+    
     Wire.write(0x32);
     Wire.endTransmission();
+
     
     Wire.requestFrom(this->i2c_addr, 6);
     int x = 0;
+   
     while(Wire.available()) {
         this->buffer.buff[x] = Wire.read();
         x++;
@@ -103,16 +107,18 @@ byte* Accelerometer::getBuffer() {
 }
 
 void Accelerometer::print() {
-    Serial.print("ACCEL : ");
-    /* Serial.print(this->getRawX());
-    Serial.print(":");
-    Serial.print(this->getRawY());
-    Serial.print(":");
-    Serial.print(this->getRawZ());
-    Serial.print('\n');
-    */
-    Serial.print(this->getRoll());
-    Serial.print(':');    
-    Serial.print(this->getPitch());
-    Serial.print('\n');
+
+    union packet{
+      struct{
+        float roll,pitch;
+      } value;
+      unsigned char buff[8];
+    };
+
+    packet msg;
+
+    msg.value.roll = this->getRoll();
+    msg.value.pitch = this->getPitch();
+    
+    Serial.write((byte)msg.buff);
 }
